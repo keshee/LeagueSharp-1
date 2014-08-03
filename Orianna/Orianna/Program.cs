@@ -156,7 +156,6 @@ namespace Orianna
                 GameObject ball = ObjectManager.GetUnitByNetworkId<GameObject>(ballNetID);
                 if (BallPos != ball.Position)
                 {
-                    Game.PrintChat("Ball moved while out");
                     BallPos = ball.Position;
                 }
             }
@@ -187,22 +186,18 @@ namespace Orianna
 
                         if(num == 3 && R.IsReady() && useR)
                         {
-                            Game.PrintChat("Using ULT MEC");
                             Q.Cast(position, true);
                         }
                         if(num == 2 && W.IsReady() && useW)
                         {
-                            Game.PrintChat("Using W MEC");
                             Q.Cast(position, true);
                         }
                         if(num == 1)
                         {
-                            Game.PrintChat("Normal cast");
                             Q.Cast(position, true);
                         }
                         if(num == 4)
                         {
-                            Game.PrintChat("Crazy MEC");
                             Q.Cast(position, true);
                         }
                     }
@@ -284,20 +279,14 @@ namespace Orianna
 
         private static void Obj_AI_Hero_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (sender.IsMe)
-            {
-                Game.PrintChat("Proccessed: " + args.SData.Name);
-            }
             if (sender.IsMe && (args.SData.Name.ToLower() == "orianaizunacommand"))
             {
-                Game.PrintChat("Ball moved out");
                 BallPos = args.End;
                 isBallMoving = false;
             }
 
             if (sender.IsMe && (args.SData.Name.ToLower() == "orianaredactcommand"))
             {
-                Game.PrintChat("Ball is coming back to ori");
                 BallPos = ObjectManager.Player.ServerPosition;
                 isBallMoving = true;
             }
@@ -444,7 +433,6 @@ namespace Orianna
                 }
                 catch(System.ArgumentOutOfRangeException)
                 {
-                    Game.PrintChat("Uh Oh, out of range exception");
                     Vector3 outOfRange = new Vector3(0);
                     return Tuple.Create(outOfRange, -1);
                 }
