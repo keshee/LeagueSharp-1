@@ -1,11 +1,9 @@
-L#
+L# Scripts/Assemblies
 ==
 
-L# Scripts/Assemblies
+**Champion Assemblies:**
 
-*Champion Assemblies:*
-
-![alt tag](https://github.com/trelli/LeagueSharp/raw/stable/Orianna/Orianna/Orianna.jpg)
+![Orianna Image](trelli.github.com/LeagueSharp/stable/Orianna/Orianna/Orianna.jpg)
 
 * Orianna - Out of nowhere
  * Features:
