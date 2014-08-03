@@ -3,7 +3,7 @@ L# Scripts/Assemblies
 
 **Champion Assemblies:**
 
-![Orianna Image](https://github.com/trelli/LeagueSharp/blob/stable/Orianna/Orianna/Orianna.jpg)
+![Orianna Image](https://github.com/trelli/LeagueSharp/blob/stable/Orianna/Orianna/Orianna.jpg?raw=true)
 
 * Orianna - Out of nowhere
  * Features:
