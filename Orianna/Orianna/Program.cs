@@ -22,13 +22,16 @@ namespace Orianna
         public static Spell R;
         public static Menu Config;
         public static Vector3 BallPos;
+        public static int ballNetID;
         public static bool isBallMoving;
+        public static Obj_AI_Hero target;
 
         private static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += Game_OnGameLoad;
         }
 
+        #region OnGameLoad
         private static void Game_OnGameLoad(EventArgs args)
         {
             if (ObjectManager.Player.BaseSkinName != ChampionName) return;
@@ -105,8 +108,12 @@ namespace Orianna
             GameObject.OnCreate += OnCreate_Object;
             GameObject.OnDelete += OnDelete_Object;
             Game.OnGameSendPacket += Game_OnSendPacket;
+            Obj_AI_Hero.OnProcessSpellCast += Obj_AI_Hero_OnProcessSpellCast;
+            
         }
+        #endregion
 
+        #region OnDraw
         private static void Drawing_OnDraw(EventArgs args)
         {
             var qValue = Config.Item("DrawQRange").GetValue<Circle>();
@@ -134,7 +141,9 @@ namespace Orianna
                 Utility.DrawCircle(ObjectManager.Player.Position, R.Range,
                     rValueM.Color, 2, 30, true);
         }
+        #endregion
 
+        #region OnGameUpdate
         private static void Game_OnGameUpdate(EventArgs args)
         {
             //Update Ball Position
@@ -142,23 +151,60 @@ namespace Orianna
             {
                 BallPos = ObjectManager.Player.ServerPosition;
             }
+            if(!isBallMoving)
+            {
+                GameObject ball = ObjectManager.GetUnitByNetworkId<GameObject>(ballNetID);
+                if (BallPos != ball.Position)
+                {
+                    Game.PrintChat("Ball moved while out");
+                    BallPos = ball.Position;
+                }
+            }
+            R.UpdateSourcePosition(BallPos);
+            W.UpdateSourcePosition(BallPos);
             //Combo & Harass
             if (Config.Item("ComboActive").GetValue<KeyBind>().Active ||
                 (Config.Item("HarassActive").GetValue<KeyBind>().Active &&
                     (ObjectManager.Player.Mana / ObjectManager.Player.MaxMana * 100) > Config.Item("ManaSliderHarass").GetValue<Slider>().Value))
             {
-                var target = SimpleTs.GetTarget(1125f, SimpleTs.DamageType.Magical);
+                target = SimpleTs.GetTarget(1125f, SimpleTs.DamageType.Magical);
                 if (target != null)
                 {
                     var comboActive = Config.Item("ComboActive").GetValue<KeyBind>().Active;
                     var harassActive = Config.Item("HarassActive").GetValue<KeyBind>().Active;
+                    var useR = Config.Item("UseRCombo").GetValue<bool>();
+                    var autoUlt = Config.Item("UltKillable").GetValue<bool>();
+                    var useW = Config.Item("UseWCombo").GetValue<bool>();
 
                     if (((comboActive &&
                           Config.Item("UseQCombo").GetValue<bool>()) ||
                          (harassActive &&
                           Config.Item("UseQHarass").GetValue<bool>())) && Q.IsReady())
                     {
-                        CastQ(target);
+                        var check = getMECQPos(target);
+                        var position = check.Item1;
+                        var num = check.Item2;
+
+                        if(num == 3 && R.IsReady() && useR)
+                        {
+                            Game.PrintChat("Using ULT MEC");
+                            Q.Cast(position, true);
+                        }
+                        if(num == 2 && W.IsReady() && useW)
+                        {
+                            Game.PrintChat("Using W MEC");
+                            Q.Cast(position, true);
+                        }
+                        if(num == 1)
+                        {
+                            Game.PrintChat("Normal cast");
+                            Q.Cast(position, true);
+                        }
+                        if(num == 4)
+                        {
+                            Game.PrintChat("Crazy MEC");
+                            Q.Cast(position, true);
+                        }
                     }
 
                     if (((comboActive && 
@@ -176,9 +222,6 @@ namespace Orianna
                     {
                         CastE(target);
                     }
-
-                    var useR = Config.Item("UseRCombo").GetValue<bool>();
-                    var autoUlt = Config.Item("UltKillable").GetValue<bool>();
 
                     if (((comboActive && Config.Item("UseRCombo").GetValue<bool>())))
                     {
@@ -212,27 +255,14 @@ namespace Orianna
                 JungleFarm();
             }
         }
+        #endregion
 
-        private static void Game_OnSendPacket(GamePacketEventArgs args)
-        {
-            if (args.PacketData[0] == Packet.C2S.Cast.Header)
-            {
-                var decodedPacket = Packet.C2S.Cast.Decoded(args.PacketData);
-                if (decodedPacket.Slot == SpellSlot.R)
-                {
-                    if(GetNumberHitByR() == 0)
-                    {
-                        //Block packet if enemies hit is 0
-                        args.Process = false;
-                    }
-                }
-            }
-        }
-
+        #region BallPosition
         private static void OnCreate_Object(GameObject sender, EventArgs args)
         {
             if (sender.Name.ToLower() == "yomu_ring_green.troy")
             {
+                ballNetID = sender.NetworkId;
                 BallPos = sender.Position;
                 isBallMoving = false;
             }
@@ -252,6 +282,30 @@ namespace Orianna
             }
         }
 
+        private static void Obj_AI_Hero_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            if (sender.IsMe)
+            {
+                Game.PrintChat("Proccessed: " + args.SData.Name);
+            }
+            if (sender.IsMe && (args.SData.Name.ToLower() == "orianaizunacommand"))
+            {
+                Game.PrintChat("Ball moved out");
+                BallPos = args.End;
+                isBallMoving = false;
+            }
+
+            if (sender.IsMe && (args.SData.Name.ToLower() == "orianaredactcommand"))
+            {
+                Game.PrintChat("Ball is coming back to ori");
+                BallPos = ObjectManager.Player.ServerPosition;
+                isBallMoving = true;
+            }
+        }
+        #endregion
+
+        #region Casts
+
         private static void CastQ(Obj_AI_Base target)
         {
             var prediction = Q.GetPrediction(target);
@@ -266,7 +320,7 @@ namespace Orianna
 
         private static void CastW(Obj_AI_Base target)
         {
-            int hit = GetNumberHitByW();
+            int hit = GetNumberHitByW(target);
             if(hit >= 1)
             {
                 ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W);
@@ -288,19 +342,21 @@ namespace Orianna
 
         private static void CastR(Obj_AI_Base target)
         {
-            if (GetNumberHitByR() >= Config.Item("MinTargets").GetValue<Slider>().Value)
+            if (GetNumberHitByR(target) >= Config.Item("MinTargets").GetValue<Slider>().Value)
             {
-                ObjectManager.Player.Spellbook.CastSpell(SpellSlot.R);
+                R.Cast(target, true, true);
             }
         }
+        #endregion
 
-        private static int GetNumberHitByW()
+        #region HitCountChecks
+        private static int GetNumberHitByW(Obj_AI_Base target)
         {
             int totalHit = 0;
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
-                var prediction = W.GetPrediction(current);
-                if (current.IsEnemy && current != null && Utility.IsValidTarget(current, 3.402823E+38f, true) && Vector3.Distance(BallPos, current.ServerPosition) <= W.Width)
+                var prediction = W.GetPrediction(current, true);
+                if (current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= W.Width - 5)
                 {
                     totalHit = totalHit + 1;
                 }
@@ -315,13 +371,13 @@ namespace Orianna
             return GetECollision(BallPos.To2D(), To, E.Type, E.Width, E.Delay, E.Speed, E.Range).Count;
         }
 
-        private static int GetNumberHitByR()
+        private static int GetNumberHitByR(Obj_AI_Base target)
         {
             int totalHit = 0;
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
-                var prediction = R.GetPrediction(current);
-                if (current.IsEnemy && current != null && Utility.IsValidTarget(current, 3.402823E+38f, true) && Vector3.Distance(BallPos, prediction.Position) <= R.Width)
+                var prediction = R.GetPrediction(current, true);
+                if (current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= R.Width - current.BoundingRadius)
                 {
                     totalHit = totalHit + 1;
                 }
@@ -329,10 +385,78 @@ namespace Orianna
             return totalHit;
         }
 
+        #endregion
+
+        #region Utility functions
+        private static Tuple<Vector3, int> getMECQPos(Obj_AI_Hero target)
+        {
+            var pointsList = new List<Vector2>();
+            var targetPred = Q.GetPrediction(target);
+            pointsList.Add(targetPred.Position.To2D());
+            foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
+            {
+                if (!current.IsMe && current.NetworkId != target.NetworkId && current.IsEnemy && current.IsValidTarget(Q.Range + (R.Width / 2)))
+                {
+                    var prediction = Q.GetPrediction(current);
+                    pointsList.Add(prediction.Position.To2D());
+                }
+            }
+
+            while (pointsList.Count != 0)
+            {
+                var circle = MEC.GetMec(pointsList);
+                var numPoints = pointsList.Count;
+
+                if (circle.Radius <= (R.Width / 2) && numPoints >= 3 && R.IsReady())
+                {
+                    return Tuple.Create(circle.Center.To3D(), 3);
+                }
+
+                if (circle.Radius <= (W.Width / 2) && numPoints >= 2 && W.IsReady())
+                {
+                    return Tuple.Create(circle.Center.To3D(), 2);
+                }
+
+                if (pointsList.Count == 1)
+                {
+                    return Tuple.Create(circle.Center.To3D(), 1);
+                }
+
+                else if (circle.Radius <= ((Q.Width / 2) + 50) && numPoints > 1)
+                {
+                    return Tuple.Create(circle.Center.To3D(), 4);
+                }
+
+                try
+                {
+                    var distance = -1f;
+                    var index = 0;
+                    var point = pointsList.ElementAt(0); 
+                    for (int i = 1; i == numPoints; i++)
+                    {
+                        if (Vector2.Distance(pointsList.ElementAt(i), point) >= distance)
+                        {
+                            distance = Vector2.Distance(pointsList.ElementAt(i), point);
+                            index = i;
+                        }
+                    }
+                    pointsList.RemoveAt(index);
+                }
+                catch(System.ArgumentOutOfRangeException)
+                {
+                    Game.PrintChat("Uh Oh, out of range exception");
+                    Vector3 outOfRange = new Vector3(0);
+                    return Tuple.Create(outOfRange, -1);
+                }
+            }
+            Vector3 noResult = new Vector3(0);
+            return Tuple.Create(noResult, -1);
+        }
+
         private static bool willHitRKill(Obj_AI_Base target)
         {
             var prediction = R.GetPrediction(target);
-            if (Vector3.Distance(BallPos, prediction.Position) <= R.Width)
+            if (Vector3.Distance(BallPos, prediction.Position) <= R.Width - target.BoundingRadius)
             {
                 return true;
             }
@@ -341,7 +465,6 @@ namespace Orianna
                 return false;
             }
         }
-
 
         public static List<Obj_AI_Base> GetECollision(Vector2 from, List<Vector2> To, Prediction.SkillshotType stype, float width,
             float delay, float speed, float range)
@@ -374,8 +497,31 @@ namespace Orianna
             result = result.Distinct().ToList();
             return result;
         }
+        private static void Game_OnSendPacket(GamePacketEventArgs args)
+        {
+            if (args.PacketData[0] == Packet.C2S.Cast.Header)
+            {
+                var decodedPacket = Packet.C2S.Cast.Decoded(args.PacketData);
+                if (decodedPacket.Slot == SpellSlot.R)
+                {
+                    if(target != null)
+                    {
+                        if (GetNumberHitByR(target) == 0)
+                        {
+                            //Block packet if enemies hit is 0
+                            args.Process = false;
+                        }
+                    }
+                    if (target == null)
+                    {
+                        args.Process = false;
+                    }
+                }
+            }
+        }
+        #endregion
 
-
+        #region Farming
         private static void Farm(bool laneClear)
         {
             if (!Orbwalking.CanMove(40))
@@ -492,5 +638,6 @@ namespace Orianna
                 }
             }
         }
+        #endregion
     }
 }
