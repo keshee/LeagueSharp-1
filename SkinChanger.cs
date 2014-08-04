@@ -1,22 +1,23 @@
 // In game skin changer, by Trelli
 
-using System; 
-using System.Collections.Generic; 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SharpDX;
-using System.Windows.Input;
+
 using LeagueSharp;
+using LeagueSharp.Common;
 
 namespace SkinChanger
 {
     public class SkinChanger
     {
-        int currSkinId = 0
-        bool canChange = true
 
-        Dictionary<string, int> numSkins = new Dictionary<string, int>();
+
+        public static int currSkinId = 0;
+        public static bool canChange = true;
+        public static Dictionary<string, int> numSkins = new Dictionary<string, int>();
         numSkins.add("Aatrox", 1);
         numSkins.add("Ahri", 4);
         numSkins.add("Akali", 6);
@@ -140,14 +141,12 @@ namespace SkinChanger
         numSkins.add("Zyra", 3);
     }
 
-    public SkinChanger()
+    private static void Main(string[] args)
     {
-        Game.OnGameStart += OnGameStart;
-        Game.OnGameUpdate += OnGameUpdate;
-
+        CustomEvents.Game.OnGameLoad += Game_OnGameLoad;
     }
 
-    public void OnGameStart(EventArgs args)
+    public static void Game_OnGameLoad(EventArgs args)
     {
         Game.PrintChat(
             string.Format(
@@ -156,11 +155,20 @@ namespace SkinChanger
                 Assembly.GetExecutingAssembly().GetName().Version
             )
         );
+
+        Config = new Menu("SkinChanger", "SkinChanger", true);
+        Config.AddSubMenu(new Menu("SkinChanger", "SkinChanger"));
+        Config.SubMenu("SkinChanger").AddItem(new MenuItem("CycleSkins", "CycleSkins!").SetValue(new KeyBind("9".ToCharArray()[0], KeyBindType.Toggle)));
+
+        Config.AddToMainMenu();
+
+        Game.OnGameUpdate += Game_OnGameUpdate;
     }
 
-    public void OnGameUpdate(EventArgs args)
+    public void Game_OnGameUpdate(EventArgs args)
     {
-        if(System.Windows.Input.Keyboard.IsKeyToggled(Key.Numpad9)
+        var cycleSkins = Config.Item("CycleSkins").GetValue<KeyBind>().Active;
+        if(cycleSkins)
         {
             if(canChange)
             {
@@ -182,29 +190,9 @@ namespace SkinChanger
         }
     }
 
-    public void GenerateSkinPacket(string currentChampion, int skinNumber, GameProcessPacket args)
+    public void GenerateSkinPacket(string currentChampion, int skinNumber)
     {
-        //This needs to be updated for L# API. Functionality is here, needs packet investigations. 
-        p = CLoLPacket(0x97)
-        p:EncodeF(myHero.networkID)
-        p.pos = 1
-        t1 = p:Decode1()
-        t2 = p:Decode1()
-        t3 = p:Decode1()
-        t4 = p:Decode1()
-        p:Encode1(t1)
-        p:Encode1(t2)
-        p:Encode1(t3)
-        p:Encode1(bit32.band(t4,0xB))
-        p:Encode1(1)--hardcode 1 bitfield
-        p:Encode4(skinId)
-        for i = 1, #champ do
-            p:Encode1(string.byte(champ:sub(i,i)))
-        end
-        for i = #champ + 1, 64 do
-            p:Encode1(0)
-        end
-        p:Hide()
-        RecvPacket(p)
+        int netID = ObjectManagr.Player.NetworkId;
+        Packet.C2S.UpdateModel.Encoded(new Packet.C2S.UpdateModel.Struct(netID, skinNumber, currentChampion, true, -1)).Receive();
     }
 }
