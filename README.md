@@ -6,7 +6,7 @@ L# Scripts/Assemblies
 ![Orianna Image](https://github.com/trelli/LeagueSharp/blob/stable/Orianna/Orianna/Orianna.jpg?raw=true)
 
 * Orianna - Master of clockwork
- * Download: [Orianna.exe] (Auto updates when a new version is released)
+ * Download: [Orianna.exe]. (Auto updates when a new version is released)
  * Features:
     * Combo and Harras:
       * Q MEC cast (will get best position to Q based on number of enemies near using MEC)
