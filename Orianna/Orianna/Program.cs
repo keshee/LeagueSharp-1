@@ -254,7 +254,7 @@ namespace Orianna
         private static void CastW(Obj_AI_Base target)
         {
             int hit = GetNumberHitByW(target);
-            if(hit >= 1 && !isBallMoving)
+            if(hit >= 1)
             {
                 ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W);
             }
@@ -289,7 +289,7 @@ namespace Orianna
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
                 var prediction = W.GetPrediction(current, true);
-                if (current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= W.Width - 15)
+                if (current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= W.Width - 8)
                 {
                     totalHit = totalHit + 1;
                 }
