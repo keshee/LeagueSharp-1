@@ -312,7 +312,8 @@ namespace Orianna
             int hit = GetNumberHitByW(target);
             if(hit >= 1)
             {
-                ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W);
+                Packet.C2S.Cast.Encoded(new Packet.C2S.Cast.Struct(SpellSlot.W)).Send();
+                //ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W);
             }
         }
 
@@ -345,7 +346,7 @@ namespace Orianna
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
                 var prediction = W.GetPrediction(current, true);
-                if (current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= W.Width - 5)
+                if (current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= W.Width - 15)
                 {
                     totalHit = totalHit + 1;
                 }
@@ -366,7 +367,7 @@ namespace Orianna
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
                 var prediction = R.GetPrediction(current, true);
-                if (current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= R.Width - current.BoundingRadius)
+                if (current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= R.Width - current.BoundingRadius - 15)
                 {
                     totalHit = totalHit + 1;
                 }
