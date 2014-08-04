@@ -23,4 +23,4 @@ L# Scripts/Assemblies
     * Misc:
       * Block manual ult cast if it won't hit anyone 
   
-[Orianna.exe]: https://github.com/trelli/LeagueSharp/raw/stable/Orianna/Orianna.exe
+[Orianna.exe]: https://github.com/trelli/LeagueSharp/raw/stable/Orianna/Release/Orianna.exe
