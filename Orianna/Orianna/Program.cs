@@ -105,11 +105,7 @@ namespace Orianna
 
             Game.OnGameUpdate += Game_OnGameUpdate;
             Drawing.OnDraw += Drawing_OnDraw;
-            GameObject.OnCreate += OnCreate_Object;
-            GameObject.OnDelete += OnDelete_Object;
             Game.OnGameSendPacket += Game_OnSendPacket;
-            Obj_AI_Hero.OnProcessSpellCast += Obj_AI_Hero_OnProcessSpellCast;
-            
         }
         #endregion
 
@@ -146,19 +142,8 @@ namespace Orianna
         #region OnGameUpdate
         private static void Game_OnGameUpdate(EventArgs args)
         {
-            //Update Ball Position
-            if(isBallMoving)
-            {
-                BallPos = ObjectManager.Player.ServerPosition;
-            }
-            if(!isBallMoving)
-            {
-                GameObject ball = ObjectManager.GetUnitByNetworkId<GameObject>(ballNetID);
-                if (BallPos != ball.Position)
-                {
-                    BallPos = ball.Position;
-                }
-            }
+            BallPos = BallManager.CurrentBallPosition;
+            isBallMoving = BallManager.IsBallMoving;
             R.UpdateSourcePosition(BallPos);
             W.UpdateSourcePosition(BallPos);
             //Combo & Harass
@@ -252,47 +237,6 @@ namespace Orianna
         }
         #endregion
 
-        #region BallPosition
-        private static void OnCreate_Object(GameObject sender, EventArgs args)
-        {
-            if (sender.Name.ToLower() == "yomu_ring_green.troy")
-            {
-                ballNetID = sender.NetworkId;
-                BallPos = sender.Position;
-                isBallMoving = false;
-            }
-            if (sender.Name.ToLower() == "orianna_ball_flash_reverse.troy")
-            {
-                BallPos = ObjectManager.Player.Position;
-                isBallMoving = true;
-            }
-        }
-
-        private static void OnDelete_Object(GameObject sender, EventArgs args)
-        {
-            if (sender.Name.ToLower() == "yomu_ring_green.troy")
-            {
-                BallPos = ObjectManager.Player.Position;
-                isBallMoving = true;
-            }
-        }
-
-        private static void Obj_AI_Hero_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
-        {
-            if (sender.IsMe && (args.SData.Name.ToLower() == "orianaizunacommand"))
-            {
-                BallPos = args.End;
-                isBallMoving = false;
-            }
-
-            if (sender.IsMe && (args.SData.Name.ToLower() == "orianaredactcommand"))
-            {
-                BallPos = ObjectManager.Player.ServerPosition;
-                isBallMoving = true;
-            }
-        }
-        #endregion
-
         #region Casts
 
         private static void CastQ(Obj_AI_Base target)
@@ -310,10 +254,9 @@ namespace Orianna
         private static void CastW(Obj_AI_Base target)
         {
             int hit = GetNumberHitByW(target);
-            if(hit >= 1)
+            if(hit >= 1 && !isBallMoving)
             {
-                Packet.C2S.Cast.Encoded(new Packet.C2S.Cast.Struct(SpellSlot.W)).Send();
-                //ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W);
+                ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W);
             }
         }
 
@@ -323,7 +266,7 @@ namespace Orianna
             float healthPer = (ObjectManager.Player.Health / ObjectManager.Player.MaxHealth) * 100;
             float useEHealthBelow = Config.Item("HealthSliderE").GetValue<Slider>().Value;
             bool useE = healthPer <= useEHealthBelow;
-            if (!isBallMoving && numHit >= 1 && useE)
+            if (!isBallMoving && BallPos != ObjectManager.Player.Position && numHit >= 1 && useE)
             {
                 E.CastOnUnit(ObjectManager.Player);
             }
@@ -332,7 +275,7 @@ namespace Orianna
 
         private static void CastR(Obj_AI_Base target)
         {
-            if (GetNumberHitByR(target) >= Config.Item("MinTargets").GetValue<Slider>().Value)
+            if (!isBallMoving && GetNumberHitByR(target) >= Config.Item("MinTargets").GetValue<Slider>().Value)
             {
                 R.Cast(target, true, true);
             }

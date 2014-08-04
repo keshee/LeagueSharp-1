@@ -33,3 +33,4 @@ C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bi
 C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bin\Debug\clipper_library.pdb
 C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bin\Debug\LeagueSharp.xml
 C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\obj\Debug\Orianna.csprojResolveAssemblyReference.cache
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bin\Debug\LeagueSharp.Common.dll
