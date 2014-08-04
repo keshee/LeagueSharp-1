@@ -69,6 +69,7 @@ namespace Orianna
             Config.SubMenu("Combo").AddItem(new MenuItem("UseECombo", "Use E").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("UseRCombo", "Use R").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("UltKillable", "Auto-Ult Killable").SetValue(true));
+            Config.SubMenu("Combo").AddItem(new MenuItem("AutoW", "Auto W Enemies").SetValue(false));
             Config.SubMenu("Combo").AddItem(new MenuItem("MinTargets", "Minimum Targets to Hit").SetValue(new Slider(1, 5, 0)));
             Config.SubMenu("Combo").AddItem(new MenuItem("HealthSliderE", "Use E if health <=").SetValue(new Slider(60, 100, 0)));
             Config.SubMenu("Combo").AddItem(new MenuItem("ComboActive", "Combo!").SetValue(new KeyBind(32, KeyBindType.Press)));
@@ -159,6 +160,29 @@ namespace Orianna
                     var useR = Config.Item("UseRCombo").GetValue<bool>();
                     var autoUlt = Config.Item("UltKillable").GetValue<bool>();
                     var useW = Config.Item("UseWCombo").GetValue<bool>();
+                    var useQ = Config.Item("UseQCombo").GetValue<bool>();
+
+                    if(comboActive && useQ && useW && useR)
+                    {
+                        if(isAlone(target) && ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) <= 825 && GetComboDamage(target) >= target.Health)
+                        {
+                            var prediction = Q.GetPrediction(target);
+                            if(prediction.HitChance >= Prediction.HitChance.HighHitchance)
+                            {
+                                Q.Cast(prediction.Position);
+                                CastW(target);
+                                if (GetNumberHitByR(target) >= 1)
+                                {
+                                    ObjectManager.Player.Spellbook.CastSpell(SpellSlot.R);
+                                }
+                                if (CastIgnite(target))
+                                {
+                                    Game.PrintChat("Enemy ignited");
+                                }
+                            }
+
+                        }
+                    }
 
                     if (((comboActive &&
                           Config.Item("UseQCombo").GetValue<bool>()) ||
@@ -187,12 +211,23 @@ namespace Orianna
                         }
                     }
 
+                    if (Config.Item("AutoW").GetValue<bool>() && W.IsReady())
+                    {
+                        if (!isBallMoving)
+                        {
+                            CastW(target);
+                        }
+                    }
+
                     if (((comboActive && 
                         Config.Item("UseWCombo").GetValue<bool>()) || 
                         (harassActive && 
                         Config.Item("UseWHarass").GetValue<bool>())) && W.IsReady())
                     {
-                        CastW(target);
+                        if(!isBallMoving)
+                        {
+                            CastW(target);
+                        }
                     }
 
                     if (((comboActive &&
@@ -205,8 +240,10 @@ namespace Orianna
 
                     if (((comboActive && Config.Item("UseRCombo").GetValue<bool>())))
                     {
-      
-                        CastR(target);
+                        if(!isBallMoving)
+                        {
+                            CastR(target);
+                        }
                     }
 
                     //R if killable
@@ -275,7 +312,7 @@ namespace Orianna
 
         private static void CastR(Obj_AI_Base target)
         {
-            if (!isBallMoving && GetNumberHitByR(target) >= Config.Item("MinTargets").GetValue<Slider>().Value)
+            if (GetNumberHitByR(target) >= Config.Item("MinTargets").GetValue<Slider>().Value)
             {
                 R.Cast(target, true, true);
             }
@@ -288,8 +325,7 @@ namespace Orianna
             int totalHit = 0;
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
-                var prediction = W.GetPrediction(current, true);
-                if (current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= W.Width - 8)
+                if (current.IsEnemy && Vector3.Distance(BallPos, current.ServerPosition) <= W.Width - 8)
                 {
                     totalHit = totalHit + 1;
                 }
@@ -310,7 +346,7 @@ namespace Orianna
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
                 var prediction = R.GetPrediction(current, true);
-                if (current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= R.Width - current.BoundingRadius - 15)
+                if (prediction.HitChance >= Prediction.HitChance.HighHitchance && !current.IsMe && current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= R.Width - current.BoundingRadius - 14)
                 {
                     totalHit = totalHit + 1;
                 }
@@ -325,13 +361,19 @@ namespace Orianna
         {
             var pointsList = new List<Vector2>();
             var targetPred = Q.GetPrediction(target);
-            pointsList.Add(targetPred.Position.To2D());
+            if (targetPred.HitChance >= Prediction.HitChance.HighHitchance)
+            {
+                pointsList.Add(targetPred.Position.To2D());
+            }
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
                 if (!current.IsMe && current.NetworkId != target.NetworkId && current.IsEnemy && current.IsValidTarget(Q.Range + (R.Width / 2)))
                 {
                     var prediction = Q.GetPrediction(current);
-                    pointsList.Add(prediction.Position.To2D());
+                    if(prediction.HitChance >= Prediction.HitChance.HighHitchance)
+                    {
+                        pointsList.Add(prediction.Position.To2D());
+                    }
                 }
             }
 
@@ -388,7 +430,7 @@ namespace Orianna
         private static bool willHitRKill(Obj_AI_Base target)
         {
             var prediction = R.GetPrediction(target);
-            if (Vector3.Distance(BallPos, prediction.Position) <= R.Width - target.BoundingRadius)
+            if (prediction.HitChance >= Prediction.HitChance.HighHitchance && Vector3.Distance(BallPos, prediction.Position) <= R.Width - target.BoundingRadius)
             {
                 return true;
             }
@@ -450,6 +492,75 @@ namespace Orianna
                     }
                 }
             }
+        }
+
+        private static float GetComboDamage(Obj_AI_Base enemy)
+        {
+            var damage = 0d;
+            var Player = ObjectManager.Player;
+
+            var igniteSlot = Player.GetSpellSlot("SummonerIgnite");
+            var igniteReady = ObjectManager.Player.Spellbook.CanUseSpell(igniteSlot) == SpellState.Ready;
+            if (igniteSlot != SpellSlot.Unknown && igniteReady)
+                damage += DamageLib.getDmg(enemy, DamageLib.SpellType.IGNITE);
+
+            damage += DamageLib.getDmg(enemy, DamageLib.SpellType.AD);
+
+            damage += DamageLib.getDmg(enemy, DamageLib.SpellType.Q);
+
+            if (W.IsReady())
+                damage += DamageLib.getDmg(enemy, DamageLib.SpellType.W);
+
+            if (R.IsReady())
+                damage += DamageLib.getDmg(enemy, DamageLib.SpellType.R);
+
+            damage += DamageLib.getDmg(enemy, DamageLib.SpellType.AD);
+
+            damage += DamageLib.getDmg(enemy, DamageLib.SpellType.Q);
+
+            return (float)damage;
+        }
+
+        private static bool isAlone(Obj_AI_Hero target)
+        {
+            int numEnemies = 0;
+            foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
+            {
+                if (!current.IsMe && current.NetworkId != target.NetworkId && current.IsEnemy && current.Distance(target.ServerPosition) <= 1000)
+                {
+                    numEnemies += 1; 
+                }
+            }
+            if(numEnemies == 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private static SpellDataInst GetIgnite()
+        {
+            var spells = ObjectManager.Player.SummonerSpellbook.Spells;
+            return spells.FirstOrDefault(spell => spell.Name == "SummonerDot");
+        }
+
+        private static bool CastIgnite(Obj_AI_Hero enemy)
+        {
+            if (!enemy.IsValid || !enemy.IsVisible || !enemy.IsTargetable || enemy.IsDead)
+            {
+                return false;
+            }
+            var ignite = GetIgnite();
+            if (ignite != null && ignite.Slot != SpellSlot.Unknown && ignite.State == SpellState.Ready &&
+                ObjectManager.Player.CanCast)
+            {
+                ObjectManager.Player.SummonerSpellbook.CastSpell(ignite.Slot, enemy);
+                return true;
+            }
+            return false;
         }
         #endregion
 

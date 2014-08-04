@@ -31,10 +31,7 @@ namespace Orianna
                 return;
             }
 
-            foreach (
-                var ally in
-                    ObjectManager.Get<Obj_AI_Hero>()
-                        .Where(ally => ally.IsAlly && !ally.IsDead && ally.HasBuff("orianaghost", true)))
+            foreach (var ally in ObjectManager.Get<Obj_AI_Hero>().Where(ally => ally.IsAlly && !ally.IsDead && ally.HasBuff("orianaghost", true)))
             {
                 CurrentBallPosition = ally.ServerPosition;
                 IsBallMoving = false;
@@ -49,9 +46,7 @@ namespace Orianna
             if (!sender.IsMe || ObjectManager.Player.GetSpellSlot(args.SData.Name, false) != SpellSlot.Q) return;
 
             IsBallMoving = true;
-            Utility.DelayAction.Add(
-                (int)Math.Max(1, 1000 * (args.End.Distance(CurrentBallPosition) - Game.Ping - 0.1) / QSpeed),
-                () =>
+            Utility.DelayAction.Add((int)Math.Max(1, 1000 * (args.End.Distance(CurrentBallPosition) - Game.Ping - 0.1) / QSpeed), () =>
                 {
                     CurrentBallPosition = args.End;
                     IsBallMoving = false;
