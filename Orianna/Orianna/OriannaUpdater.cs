@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.ComponentModel;
 using LeagueSharp;
 
 namespace Orianna
 {
-    internal static class OriannaUpdater
+    class OriannaUpdater
     {
         private const int localversion = 1;
         internal static bool isInitialized;
@@ -25,8 +29,8 @@ namespace Orianna
 
         private static void bgw_DoWork(object sender, DoWorkEventArgs e)
         {
-            var myUpdater = new Updater("https://raw.githubusercontent.com/LeagueSharp/LeagueSharp/master/Versions/common.version",
-                    "https://github.com/LeagueSharp/LeagueSharp/raw/master/Releases/LeagueSharp.Common.dll", localversion);
+            var myUpdater = new Updater("https://raw.githubusercontent.com/trelli/LeagueSharp/stable/Orianna/Version/Orianna.version",
+                    "https://github.com/trelli/LeagueSharp/raw/stable/Orianna/Release/Orianna.exe", localversion);
             if (myUpdater.NeedUpdate)
             {
                 Game.PrintChat("<font color='#33FFFF'> .: Orianna - Master of Clockwork: Updating ...");

@@ -22,7 +22,6 @@ namespace Orianna
         public static Spell R;
         public static Menu Config;
         public static Vector3 BallPos;
-        public static int ballNetID;
         public static bool isBallMoving;
         public static Obj_AI_Hero target;
 
@@ -34,6 +33,7 @@ namespace Orianna
         #region OnGameLoad
         private static void Game_OnGameLoad(EventArgs args)
         {
+            OriannaUpdater.InitializeOrianna();
             if (ObjectManager.Player.BaseSkinName != ChampionName) return;
 
             Q = new Spell(SpellSlot.Q, 825f);
