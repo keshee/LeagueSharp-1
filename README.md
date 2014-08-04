@@ -13,7 +13,7 @@ L# Scripts/Assemblies
       * W prediction cast to make sure it doesn't miss 
       * E cast in combo if will hit and health below a certain point (configurable in menu)
       * R prediction cast to make sure it doesn't miss
-      * Use items and ignite in combo (Coming soon)
+      * All in with ignite when isolated and killable
     * Farm: 
       * Smart farming to only Q a minion you can't AA otherwise just reposition ball. (Coming in farming rework soon)
       * W only when 3 or more minions are killable (configurable in menu) (Coming in farming rework soon)
