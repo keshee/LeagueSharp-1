@@ -815,7 +815,8 @@ namespace Orianna
 
                 if (useW && W.IsReady())
                 {
-                    int hitCount = W.CountHits(mobs, BallPos);
+                    var prediction = W.GetPrediction(mob, true);
+                    int hitCount = prediction.TargetsHit;
                     if (hitCount >= 1)
                     {
                         ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W);
