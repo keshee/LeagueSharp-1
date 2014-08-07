@@ -24,6 +24,9 @@ namespace Orianna
         public static Vector3 BallPos;
         public static bool isBallMoving;
         public static Obj_AI_Hero target;
+        public static Dictionary<string, List<string>> GinitiatorList = new Dictionary<string,List<string>>();
+        public static Dictionary<string, List<string>> GinterruptList = new Dictionary<string, List<string>>();
+        public static Dictionary<string, string> GswitchList = new Dictionary<string, string>();
 
         private static void Main(string[] args)
         {
@@ -35,6 +38,80 @@ namespace Orianna
         {
             if (ObjectManager.Player.BaseSkinName != ChampionName) return;
             OriannaUpdater.InitializeOrianna();
+            var initiatorList = new Dictionary<string, List<string>>();
+            var interruptList = new Dictionary<string, List<string>>();
+            var switchList = new Dictionary<string, string>();
+
+            List<string> viSkills = CreateList("ViQ", "ViR");
+            initiatorList.Add("Vi", viSkills); 
+            List<string> malphSkills = CreateList("Landslide");
+            initiatorList.Add("Malphite", malphSkills);
+            List<string> noctSkills = CreateList("NocturneParanoia");
+            initiatorList.Add("Nocturne", noctSkills);
+            List<string> zacSkills = CreateList("ZacE");
+            initiatorList.Add("Zac", zacSkills);
+            List<string> wukongSkills = CreateList("MonkeyKingNimbus", "MonkeyKingSpinToWin", "SummonerFlash");
+            initiatorList.Add("MonkeyKing", wukongSkills);
+            List<string> shyvSkills = CreateList("ShyvanaTransformCast");
+            initiatorList.Add("Shyvana", shyvSkills);
+            List<string> threshSkills = CreateList("threshqleap");
+            initiatorList.Add("Thresh", threshSkills);
+            List<string> aatroxSkills = CreateList("AatroxQ");
+            initiatorList.Add("Aatrox", aatroxSkills);
+            List<string> renekSkills = CreateList("RenektonSliceAndDice");
+            initiatorList.Add("Renekton", renekSkills);
+            List<string> kennenSkills = CreateList("KennenLightningRush", "SummonerFlash");
+            initiatorList.Add("Kennen", kennenSkills);
+            List<string> olafSkills = CreateList("OlafRagnarok");
+            initiatorList.Add("Olaf", olafSkills);
+            List<string> udyrSkills = CreateList("UdyrBearStance");
+            initiatorList.Add("Udyr", udyrSkills);
+            List<string> voliSkills = CreateList("VolibearQ");
+            initiatorList.Add("Volibear", voliSkills);
+            List<string> talonSkills = CreateList("TalonCutthroat");
+            initiatorList.Add("Talon", talonSkills);
+            List<string> jarvanSkills = CreateList("JarvanIVDragonStrike");
+            initiatorList.Add("JarvanIV", jarvanSkills);
+            List<string> warwickSkills = CreateList("InfiniteDuress");
+            initiatorList.Add("Warwick", warwickSkills);
+            List<string> jaxSkills = CreateList("JaxLeapStrike");
+            initiatorList.Add("Jax", jaxSkills);
+            List<string> yasuoSkills = CreateList("YasuoRKnockUPComboW");
+            initiatorList.Add("Yasuo", yasuoSkills);
+            List<string> dianaSkills = CreateList("DianaTeleport");
+            initiatorList.Add("Diana", dianaSkills);
+            List<string> leeSkills = CreateList("BlindMonkQTwo");
+            initiatorList.Add("LeeSin", leeSkills);
+            List<string> shenSkills = CreateList("ShenShadowDash");
+            initiatorList.Add("Shen", shenSkills);
+            List<string> alistarSkills = CreateList("Headbutt");
+            initiatorList.Add("Alistar", alistarSkills);
+            List<string> amumuSkills = CreateList("BandageToss");
+            initiatorList.Add("Amumu", amumuSkills);
+            List<string> urgotSkills = CreateList("UrgotSwap2");
+            initiatorList.Add("Urgot", urgotSkills);
+            List<string> rengarSkills = CreateList("RengarR");
+            initiatorList.Add("Rengar", rengarSkills);
+
+            //InterrupList
+            List<string> katSkills = CreateList("KatarinaR");
+            interruptList.Add("Katarina", katSkills);
+            List<string> mahlzSkills = CreateList("AlZaharNetherGrasp");
+            interruptList.Add("Malzahar", mahlzSkills);
+            List<string> warwickIntSkills = CreateList("InfiniteDuress");
+            interruptList.Add("Warwick", warwickIntSkills);
+            List<string> velkozSkills = CreateList("VelkozR");
+            interruptList.Add("Velkoz", velkozSkills);
+
+            //switch for baseSkinName
+                //Udyr
+            switchList.Add("udyrphoenix", "Udyr");
+            switchList.Add("udyrtiger", "Udyr");
+            switchList.Add("udyrturtle", "Udyr");
+
+            GinitiatorList = initiatorList;
+            GinterruptList = interruptList;
+            GswitchList = switchList;
 
             Q = new Spell(SpellSlot.Q, 825f);
             W = new Spell(SpellSlot.W, 0f);
@@ -102,6 +179,17 @@ namespace Orianna
             Config.SubMenu("Drawings").AddItem(new MenuItem("DrawERange", "Draw E Range").SetValue(new Circle(true, Color.FromArgb(100, 255, 255, 255))));
             Config.SubMenu("Drawings").AddItem(new MenuItem("DrawRRange", "Draw R Range").SetValue(new Circle(false, Color.FromArgb(100, 255, 255, 255))));
 
+            Config.AddSubMenu(new Menu("Auto E Initiators", "AutoEInit"));
+            Config.SubMenu("AutoEInit").AddItem(new MenuItem("InitEnabled", "Enabled").SetValue(true));
+            foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
+            {
+                if (!current.IsMe && current.IsAlly && GinitiatorList.ContainsKey(current.BaseSkinName))
+                {
+                    String eChamp = "AutoE" + current.BaseSkinName;
+                    Config.SubMenu("AutoEInit").AddItem(new MenuItem(eChamp, current.BaseSkinName).SetValue(true));
+                }
+            }
+
             Config.AddSubMenu(new Menu("Debug", "Debug"));
             Config.SubMenu("Debug").AddItem(new MenuItem("DebugR", "Enable Debug Ult")).SetValue(false);
             Config.AddToMainMenu();
@@ -141,11 +229,8 @@ namespace Orianna
         #region OnGameUpdate
         private static void Game_OnGameUpdate(EventArgs args)
         {
-            BallPos = BallManager.CurrentBallPosition;
-            isBallMoving = BallManager.IsBallMoving;
-            R.UpdateSourcePosition(BallPos);
-            W.UpdateSourcePosition(BallPos);
-
+            //For Auto E Initiators 
+            TickChecks();
             //Combo & Harass
             if (Config.Item("ComboActive").GetValue<KeyBind>().Active || 
                 ((Config.Item("HarassActive").GetValue<KeyBind>().Active || Config.Item("HarassActiveT").GetValue<KeyBind>().Active) &&
@@ -331,7 +416,7 @@ namespace Orianna
             int totalHit = 0;
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
-                if (current.IsEnemy && Vector3.Distance(BallPos, current.ServerPosition) <= W.Width - 8)
+                if (current.IsEnemy && Vector3.Distance(BallPos, current.ServerPosition) <= W.Width - 14)
                 {
                     totalHit = totalHit + 1;
                 }
@@ -355,7 +440,7 @@ namespace Orianna
             {
                 var prediction = R.GetPrediction(current, true);
                 if (debug) { Game.PrintChat("HitChance is: " + prediction.HitChance); };
-                if (prediction.HitChance >= Prediction.HitChance.HighHitchance && !current.IsMe && current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= R.Width - (target.BoundingRadius / 2))
+                if (prediction.HitChance >= Prediction.HitChance.HighHitchance && !current.IsMe && current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= R.Width - 20)
                 {
                     totalHit = totalHit + 1;
                 }
@@ -367,6 +452,11 @@ namespace Orianna
         #endregion
 
         #region Utility functions
+        private static List<T> CreateList<T>(params T[] values)
+        {
+            return new List<T>(values);
+        }
+
         private static Tuple<Vector3, int> getMECQPos(Obj_AI_Hero target)
         {
             var pointsList = new List<Vector2>();
@@ -622,6 +712,37 @@ namespace Orianna
             }
             Vector3 noResult = new Vector3(0);
             return Tuple.Create(noResult, -1);
+        }
+
+        private static void TickChecks()
+        {
+            BallPos = BallManager.CurrentBallPosition;
+            isBallMoving = BallManager.IsBallMoving;
+            R.UpdateSourcePosition(BallPos);
+            W.UpdateSourcePosition(BallPos);
+
+            var eInitiators = Config.Item("InitEnabled").GetValue<bool>();
+            if (E.IsReady() && eInitiators)
+            {
+                foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
+                {
+                    String champName = current.BaseSkinName;
+                    String result; 
+                    if (GswitchList.TryGetValue(champName, out result))
+                    {
+                        champName = result;
+                    }
+                    if (!current.IsMe && current.IsAlly && Vector3.Distance(ObjectManager.Player.ServerPosition, current.Position) < E.Range && GinitiatorList.ContainsKey(current.BaseSkinName))
+                    {
+                        var stringCheck = "AutoE" + champName;
+                        if (Config.Item(stringCheck).GetValue<bool>() && (current.LastCastedspell() != null) && (current.LastCastedSpellName() != null)
+                            && (Environment.TickCount - current.LastCastedSpellT()) < 1.5)
+                        {
+                            E.CastOnUnit(current);
+                        }
+                    }
+                }
+            }
         }
         #endregion
 
