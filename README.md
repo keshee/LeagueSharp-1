@@ -15,6 +15,7 @@ L# Scripts/Assemblies
          * Now will also E to bring ball to Orianna if it is a long ways away. (should make combos/chasing feel ALOT better) 
       * R prediction cast to make sure it doesn't miss
       * All in with ignite when isolated and killable
+      * Ball delivery system! (auto E iniatiators is added)
     * Farm: 
       * Smart farming to only Q a minion you can't AA otherwise just reposition ball or harass if in range (Added)
       * W only when 3 or more minions are killable (configurable in menu) (Added, needs some finetuning)
