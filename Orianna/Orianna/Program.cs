@@ -726,19 +726,26 @@ namespace Orianna
             {
                 foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
                 {
+                    target = SimpleTs.GetTarget(1125f, SimpleTs.DamageType.Magical);
                     String champName = current.BaseSkinName;
-                    String result; 
+                    String result;
+                    List<string> spellList;
                     if (GswitchList.TryGetValue(champName, out result))
                     {
                         champName = result;
                     }
-                    if (!current.IsMe && current.IsAlly && Vector3.Distance(ObjectManager.Player.ServerPosition, current.Position) < E.Range && GinitiatorList.ContainsKey(current.BaseSkinName))
+                    if (!current.IsMe && current.IsAlly && Vector3.Distance(ObjectManager.Player.ServerPosition, current.Position) < E.Range && GinitiatorList.TryGetValue(champName, out spellList))
                     {
                         var stringCheck = "AutoE" + champName;
+                        string spellName = current.LastCastedSpellName();
                         if (Config.Item(stringCheck).GetValue<bool>() && (current.LastCastedspell() != null) && (current.LastCastedSpellName() != null)
-                            && (Environment.TickCount - current.LastCastedSpellT()) < 1.5)
+                            && spellList.Contains(spellName) && (Environment.TickCount - current.LastCastedSpellT()) < 1.5)
                         {
                             E.CastOnUnit(current);
+                            if(target != null && GetNumberHitByR(target) >= Config.Item("MinTargets").GetValue<Slider>().Value && R.IsReady())
+                            {
+                                R.Cast(target, true, true);
+                            }
                         }
                     }
                 }
