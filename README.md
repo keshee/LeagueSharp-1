@@ -3,14 +3,12 @@ L# Scripts/Assemblies
 
 **Champion Assemblies:**
 
-### Riven - Story of a Broken Blade (Coming soon)
+### *Riven - Story of a Broken Blade (Coming soon)*
 ![Riven Image](http://i.imgur.com/dCcScoE.jpg)
 
 ==
 
-==
-
-### Orianna - Master of clockwork
+### *Orianna - Master of clockwork*
 ![Orianna Image](https://github.com/trelli/LeagueSharp/blob/stable/Orianna/Orianna/Orianna.jpg?raw=true)
 
  * Download: [Orianna.exe]. (Auto updates when a new version is released)
