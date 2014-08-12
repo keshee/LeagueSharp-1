@@ -3,9 +3,10 @@ L# Scripts/Assemblies
 
 **Champion Assemblies:**
 
-### *Riven - Story of a Broken Blade (Coming soon)*
+### *Riven - Story of a Broken Blade (Currently Early Beta)*
 ![Riven Image](http://i.imgur.com/dCcScoE.jpg)
 
+* Riven is currently in early beta and is extremely buggy, would not recommened using in normals even. Please feel free to give suggestions, or report horrible buggs by making a new incident. Will continue to improve just like Orianna did/is. 
 ==
 
 ### *Orianna - Master of clockwork*
