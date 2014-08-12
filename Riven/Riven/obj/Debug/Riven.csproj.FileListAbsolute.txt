@@ -1,0 +1,12 @@
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\bin\Debug\Riven.exe.config
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\bin\Debug\Riven.exe
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\bin\Debug\Riven.pdb
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\bin\Debug\clipper_library.dll
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\bin\Debug\LeagueSharp.Common.dll
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\bin\Debug\LeagueSharp.dll
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\bin\Debug\SharpDX.Direct3D9.dll
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\bin\Debug\SharpDX.dll
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\bin\Debug\LeagueSharp.xml
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\obj\Debug\Riven.csprojResolveAssemblyReference.cache
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\obj\Debug\Riven.exe
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\Riven\Riven\Riven\obj\Debug\Riven.pdb
