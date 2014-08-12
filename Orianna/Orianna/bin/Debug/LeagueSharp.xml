@@ -373,6 +373,16 @@ This exception is thrown when a Spellbook object can no longer be located in mem
 This enum defines the different states a <see cref="T:LeagueSharp.SpellDataInst" /> can have.
 </summary>
         </member>
+        <member name="M:LeagueSharp.NavMesh.GetCollisionFlags(System.Single,System.Single)">
+            <summary>
+Returns the Collision Flags for the given coordinates.
+</summary>
+        </member>
+        <member name="M:LeagueSharp.NavMesh.GetCollisionFlags(SharpDX.Vector3)">
+            <summary>
+Returns the Collision Flags for the given coordinates.
+</summary>
+        </member>
         <member name="M:LeagueSharp.NavMesh.GetHeightForPosition(System.Single,System.Single)">
             <summary>
 Returns the Z axis for the given position

@@ -35,3 +35,4 @@ C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\ob
 C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bin\Debug\LeagueSharp.Common.dll
 C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bin\Debug\LeagueSharp.dll
 C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bin\Debug\SharpDX.dll
+C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bin\Debug\clipper_library.dll
