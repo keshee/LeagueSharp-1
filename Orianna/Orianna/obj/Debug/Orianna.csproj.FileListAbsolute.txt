@@ -36,3 +36,14 @@ C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bi
 C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bin\Debug\LeagueSharp.dll
 C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bin\Debug\SharpDX.dll
 C:\Users\KENNNNNNNNT\Documents\LeagueSharp\trelli\LeagueSharp\Orianna\Orianna\bin\Debug\clipper_library.dll
+Z:\Programming\LeagueSharp\Orianna\Orianna\bin\Debug\Orianna.exe.config
+Z:\Programming\LeagueSharp\Orianna\Orianna\obj\Debug\Orianna.exe
+Z:\Programming\LeagueSharp\Orianna\Orianna\obj\Debug\Orianna.pdb
+Z:\Programming\LeagueSharp\Orianna\Orianna\bin\Debug\Orianna.exe
+Z:\Programming\LeagueSharp\Orianna\Orianna\bin\Debug\Orianna.pdb
+Z:\Programming\LeagueSharp\Orianna\Orianna\bin\Debug\SharpDX.Direct3D9.dll
+Z:\Programming\LeagueSharp\Orianna\Orianna\bin\Debug\LeagueSharp.xml
+Z:\Programming\LeagueSharp\Orianna\Orianna\obj\Debug\Orianna.csprojResolveAssemblyReference.cache
+Z:\Programming\LeagueSharp\Orianna\Orianna\bin\Debug\LeagueSharp.Common.dll
+Z:\Programming\LeagueSharp\Orianna\Orianna\bin\Debug\LeagueSharp.dll
+Z:\Programming\LeagueSharp\Orianna\Orianna\bin\Debug\SharpDX.dll

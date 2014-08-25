@@ -118,10 +118,10 @@ namespace Orianna
             E = new Spell(SpellSlot.E, 1095f);
             R = new Spell(SpellSlot.R, float.MaxValue);
 
-            Q.SetSkillshot(0f, 80f, 1200f, false, Prediction.SkillshotType.SkillshotCircle);
-            W.SetSkillshot(0.25f, 275f, float.MaxValue, false, Prediction.SkillshotType.SkillshotCircle);
-            E.SetSkillshot(0.25f, 100f, 1700f, false, Prediction.SkillshotType.SkillshotCircle);
-            R.SetSkillshot(0.6f, 400f, float.MaxValue, false, Prediction.SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(0f, 80f, 1200f, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0.25f, 275f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            E.SetSkillshot(0.25f, 100f, 1700f, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.6f, 400f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             SpellList.Add(Q);
             SpellList.Add(W);
@@ -148,6 +148,7 @@ namespace Orianna
             Config.SubMenu("Combo").AddItem(new MenuItem("AutoW", "Auto W Enemies").SetValue(false));
             Config.SubMenu("Combo").AddItem(new MenuItem("AllIn", "All in when killable").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("MinTargets", "Minimum Targets to Ult").SetValue(new Slider(1, 5, 0)));
+            Config.SubMenu("Combo").AddItem(new MenuItem("UltMinToggle", "Use Ult when >= min toggle").SetValue(new KeyBind("U".ToCharArray()[0], KeyBindType.Toggle)));
             Config.SubMenu("Combo").AddItem(new MenuItem("HealthSliderE", "Use E in combo if health <=").SetValue(new Slider(60, 100, 0)));
             Config.SubMenu("Combo").AddItem(new MenuItem("ComboActive", "Combo!").SetValue(new KeyBind(32, KeyBindType.Press)));
 
@@ -210,7 +211,7 @@ namespace Orianna
 
             var wValue = Config.Item("DrawWRange").GetValue<Circle>();
             if (wValue.Active)
-                Utility.DrawCircle(BallPos, W.Width,
+                Utility.DrawCircle(BallManager.CurrentBallDrawPosition, W.Width,
                     wValue.Color);
 
             var eValue = Config.Item("DrawERange").GetValue<Circle>();
@@ -221,7 +222,7 @@ namespace Orianna
             var rValue = Config.Item("DrawRRange").GetValue<Circle>();
             if (rValue.Active)
             {
-                    Utility.DrawCircle(BallPos, R.Width, rValue.Color);
+                Utility.DrawCircle(BallManager.CurrentBallDrawPosition, R.Width, rValue.Color);
             }
         }
         #endregion
@@ -247,15 +248,16 @@ namespace Orianna
                     var useW = Config.Item("UseWCombo").GetValue<bool>();
                     var useQ = Config.Item("UseQCombo").GetValue<bool>();
                     var allIn = Config.Item("AllIn").GetValue<bool>();
+                    var ultMinToggle = Config.Item("UltMinToggle").GetValue<KeyBind>().Active;
 
                     if(comboActive && allIn && useQ && useW && useR && Q.IsReady())
                     {
                         if(isAlone(target) && ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) <= 825 && GetComboDamage(target) >= target.Health)
                         {
                             var prediction = Q.GetPrediction(target);
-                            if(prediction.HitChance >= Prediction.HitChance.HighHitchance)
+                            if(prediction.Hitchance >= HitChance.High)
                             {
-                                Q.Cast(prediction.Position);
+                                Q.Cast(prediction.CastPosition);
                                 CastW(target);
                                 if (GetNumberHitByR(target) >= 1)
                                 {
@@ -327,7 +329,7 @@ namespace Orianna
                         CastE(target);
                     }
 
-                    if (((comboActive && Config.Item("UseRCombo").GetValue<bool>())))
+                    if (comboActive && Config.Item("UseRCombo").GetValue<bool>() && ultMinToggle)
                     {
                         if(!isBallMoving)
                         {
@@ -336,7 +338,7 @@ namespace Orianna
                     }
 
                     //R if killable
-                    if (comboActive && useR && autoUlt && R.IsReady() && DamageLib.getDmg(target, DamageLib.SpellType.R) > target.Health)
+                    if (comboActive && useR && autoUlt && R.IsReady() && DamageLib.getDmg(target, DamageLib.SpellType.R) > target.Health && !BallManager.IsBallMoving)
                     {
                         if(willHitRKill(target))
                         {
@@ -370,7 +372,7 @@ namespace Orianna
         private static void CastQ(Obj_AI_Base target)
         {
             var prediction = Q.GetPrediction(target);
-            if (prediction.HitChance >= Prediction.HitChance.HighHitchance)
+            if (prediction.Hitchance >= HitChance.High)
             {
                 if (ObjectManager.Player.ServerPosition.Distance(prediction.CastPosition) <= Q.Range + Q.Width)
                 {
@@ -381,6 +383,7 @@ namespace Orianna
 
         private static void CastW(Obj_AI_Base target)
         {
+            if (BallManager.IsBallMoving) return;
             int hit = GetNumberHitByW(target);
             if(hit >= 1)
             {
@@ -390,7 +393,7 @@ namespace Orianna
 
         private static void CastE(Obj_AI_Base target)
         {
-            int numHit = GetNumberHitByE();
+            int numHit = GetNumberHeroesHitByE();
             float healthPer = (ObjectManager.Player.Health / ObjectManager.Player.MaxHealth) * 100;
             float useEHealthBelow = Config.Item("HealthSliderE").GetValue<Slider>().Value;
             bool useE = healthPer <= useEHealthBelow;
@@ -403,6 +406,10 @@ namespace Orianna
 
         private static void CastR(Obj_AI_Base target)
         {
+            if(BallManager.IsBallMoving)
+            {
+                return;
+            }
             if (GetNumberHitByR(target) >= Config.Item("MinTargets").GetValue<Slider>().Value)
             {
                 R.Cast(target, true, true);
@@ -416,7 +423,7 @@ namespace Orianna
             int totalHit = 0;
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
-                if (current.IsEnemy && Vector3.Distance(BallPos, current.ServerPosition) <= W.Width - 14)
+                if (!current.IsMe && current.IsEnemy && Vector3.Distance(BallManager.CurrentBallPosition, current.ServerPosition) <= W.Width - 14)
                 {
                     totalHit = totalHit + 1;
                 }
@@ -424,11 +431,50 @@ namespace Orianna
             return totalHit;
         }
 
-        private static int GetNumberHitByE()
+        private static int GetNumberHeroesHitByE()
         {
-            List<SharpDX.Vector2> To = new List<Vector2>();
-            To.Add(ObjectManager.Player.ServerPosition.To2D());
-            return GetECollision(BallPos.To2D(), To, E.Type, E.Width, E.Delay, E.Speed, E.Range).Count;
+            var heroresult = new List<Obj_AI_Base>();
+            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
+            {
+                PredictionInput input = new PredictionInput { Unit = hero, Delay = E.Delay, Radius = E.Width, Speed = E.Speed, };
+                input.From = BallManager.CurrentBallPosition;
+
+                if (hero.IsValidTarget(input.Range + input.Radius + 100, true, input.From))
+                {
+                    var prediction = Prediction.GetPrediction(input);
+                    if (
+                        prediction.UnitPosition.To2D()
+                            .Distance(input.From.To2D(), ObjectManager.Player.ServerPosition.To2D(), true, true) <=
+                        Math.Pow((input.Radius + 50 + hero.BoundingRadius), 2))
+                    {
+                        heroresult.Add(hero);
+                    }
+                }
+            }
+            return heroresult.Count;
+        }
+
+        private static List<Obj_AI_Base> GetMinionsHitByE()
+        {
+            var minionresult = new List<Obj_AI_Base>();
+            foreach (var minion in ObjectManager.Get<Obj_AI_Minion>())
+            {
+                PredictionInput input = new PredictionInput { Unit = minion, Delay = E.Delay, Radius = E.Width, Speed = E.Speed, };
+                input.From = BallManager.CurrentBallPosition;
+
+                if (minion.IsValidTarget(input.Range + input.Radius + 100, true, input.From))
+                {
+                    var prediction = Prediction.GetPrediction(input);
+                    if (
+                        prediction.UnitPosition.To2D()
+                            .Distance(input.From.To2D(), ObjectManager.Player.ServerPosition.To2D(), true, true) <=
+                        Math.Pow((input.Radius + 15 + minion.BoundingRadius), 2))
+                    {
+                        minionresult.Add(minion);
+                    }
+                }
+            }
+            return minionresult;
         }
 
         private static int GetNumberHitByR(Obj_AI_Base target)
@@ -439,8 +485,8 @@ namespace Orianna
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
                 var prediction = R.GetPrediction(current, true);
-                if (debug) { Game.PrintChat("HitChance is: " + prediction.HitChance); };
-                if (prediction.HitChance >= Prediction.HitChance.HighHitchance && !current.IsMe && current.IsEnemy && Vector3.Distance(BallPos, prediction.Position) <= R.Width - 20)
+                if (debug) { Game.PrintChat("HitChance is: " + prediction.Hitchance); };
+                if (prediction.Hitchance >= HitChance.High && !current.IsMe && current.IsEnemy && Vector3.Distance(BallPos, prediction.CastPosition) <= R.Width - 20)
                 {
                     totalHit = totalHit + 1;
                 }
@@ -461,18 +507,18 @@ namespace Orianna
         {
             var pointsList = new List<Vector2>();
             var targetPred = Q.GetPrediction(target);
-            if (targetPred.HitChance >= Prediction.HitChance.HighHitchance)
+            if (targetPred.Hitchance >= HitChance.High)
             {
-                pointsList.Add(targetPred.Position.To2D());
+                pointsList.Add(targetPred.CastPosition.To2D());
             }
             foreach (Obj_AI_Hero current in ObjectManager.Get<Obj_AI_Hero>())
             {
                 if (!current.IsMe && current.NetworkId != target.NetworkId && current.IsEnemy && current.IsValidTarget(Q.Range + (R.Width / 2)))
                 {
                     var prediction = Q.GetPrediction(current);
-                    if(prediction.HitChance >= Prediction.HitChance.HighHitchance)
+                    if(prediction.Hitchance >= HitChance.High)
                     {
-                        pointsList.Add(prediction.Position.To2D());
+                        pointsList.Add(prediction.CastPosition.To2D());
                     }
                 }
             }
@@ -530,7 +576,7 @@ namespace Orianna
         private static bool willHitRKill(Obj_AI_Base target)
         {
             var prediction = R.GetPrediction(target);
-            if (prediction.HitChance >= Prediction.HitChance.HighHitchance && Vector3.Distance(BallPos, prediction.Position) <= R.Width - (target.BoundingRadius / 2))
+            if (prediction.Hitchance >= HitChance.High && Vector3.Distance(BallPos, prediction.CastPosition) <= R.Width - (target.BoundingRadius / 2))
             {
                 return true;
             }
@@ -540,37 +586,6 @@ namespace Orianna
             }
         }
 
-        public static List<Obj_AI_Base> GetECollision(Vector2 from, List<Vector2> To, Prediction.SkillshotType stype, float width,
-            float delay, float speed, float range)
-        {
-            var result = new List<Obj_AI_Base>();
-
-            foreach (var TestPosition in To)
-            {
-                foreach (var collisionObject in ObjectManager.Get<Obj_AI_Hero>())
-                {
-                    if (collisionObject.IsValidTarget() && collisionObject.Team != ObjectManager.Player.Team &&
-                        Vector2.DistanceSquared(from, collisionObject.Position.To2D()) <= Math.Pow(range * 1.5, 2))
-                    {
-                        var objectPrediction = Prediction.GetBestPosition(collisionObject, delay, width, speed,
-                            from.To3D(), float.MaxValue,
-                            false, stype, @from.To3D());
-                        if (
-                            objectPrediction.Position.To2D().Distance(from, TestPosition, true, true) <=
-                            Math.Pow((width + 15 + collisionObject.BoundingRadius), 2))
-                        {
-                            result.Add(collisionObject);
-                            Drawing.DrawCircle(objectPrediction.Position, width + collisionObject.BoundingRadius,
-                                Color.Red);
-                        }
-                    }
-                }
-            }
-
-            /*Remove duplicates*/
-            result = result.Distinct().ToList();
-            return result;
-        }
         private static void Game_OnSendPacket(GamePacketEventArgs args)
         {
             if (args.PacketData[0] == Packet.C2S.Cast.Header)
@@ -672,9 +687,9 @@ namespace Orianna
                 {
                     var prediction = Q.GetPrediction(current);
                     var damage = DamageLib.getDmg(current, DamageLib.SpellType.W) * 0.75;
-                    if (prediction.HitChance >= Prediction.HitChance.HighHitchance && damage > current.Health)
+                    if (prediction.Hitchance >= HitChance.High && damage > current.Health)
                     {
-                        pointsList.Add(prediction.Position.To2D());
+                        pointsList.Add(prediction.CastPosition.To2D());
                     }
                 }
             }
@@ -787,18 +802,29 @@ namespace Orianna
                 }
             }
 
-            if(useQ && Q.IsReady() && useW && W.IsReady())
+            if (useQ && Q.IsReady())
             {
                 var mecLocation = getMECQFarmPos();
                 var position = mecLocation.Item1;
-                var hitCount = mecLocation.Item2;
-                if (hitCount != -1)
-                {
-                    //Game.PrintChat("Hit Count is: " + hitCount);
-                }
-                if(hitCount >= 2)
+                var killableCount = mecLocation.Item2;
+                if (killableCount >= 2)
                 {
                     Q.Cast(position, true);
+                }
+            }
+
+            if (useW && W.IsReady())
+            {
+                int minionsHit = 0;
+                foreach (var minion in allMinions)
+                {
+                    if (Vector3.Distance(BallManager.CurrentBallDrawPosition, minion.ServerPosition) <= W.Width && W.GetDamage(minion) > minion.Health)
+                    {
+                        minionsHit += 1;
+                    }
+                }
+                if (minionsHit >= 2)
+                {
                     ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W);
                 }
             }
@@ -809,18 +835,13 @@ namespace Orianna
                 {
                     var distance = Vector3.Distance(ObjectManager.Player.ServerPosition, target.ServerPosition);
                     var prediction = Q.GetPrediction(target);
-                    if (prediction.HitChance == Prediction.HitChance.CantHit)
+                    if (prediction.Hitchance == HitChance.OutOfRange)
                     {
-                        var castVector = ObjectManager.Player.ServerPosition.To2D();
-                        var targetVector = target.ServerPosition.To2D();
-                        Vector2 vectorAB = targetVector - castVector;
-                        Vector2 unitAB = vectorAB.Normalized();
-                        var resultVector = castVector + unitAB * Q.Range;
-                        Q.Cast(resultVector, true);
+                        Q.Cast(ObjectManager.Player.ServerPosition.To2D().Extend(prediction.CastPosition.To2D(), Q.Range - 5));
                     }
-                    else if (prediction.HitChance >= Prediction.HitChance.HighHitchance)
+                    else if (prediction.Hitchance >= HitChance.High)
                     {
-                        Q.CastOnUnit(target, true);
+                        Q.Cast(prediction.CastPosition);
                     }
                 }
                 else
@@ -834,10 +855,8 @@ namespace Orianna
 
             if (E.IsReady() && useE)
             {
-                List<SharpDX.Vector2> To = new List<SharpDX.Vector2>();
-                To.Add(ObjectManager.Player.ServerPosition.To2D());
-                var collisionList = Prediction.GetCollision(BallPos.To2D(), To, E.Type, E.Width, E.Delay, E.Speed, E.Range);
-                int hitCount = collisionList.Count;
+                var collisionList = GetMinionsHitByE();
+                var hitCount = collisionList.Count;
                 foreach (Obj_AI_Base minion in collisionList)
                 {
                     var damage = DamageLib.getDmg(minion, DamageLib.SpellType.E) * 0.88;
@@ -882,18 +901,29 @@ namespace Orianna
                 }
             }
 
-            if (useQ && Q.IsReady() && useW && W.IsReady())
+            if (useQ && Q.IsReady())
             {
                 var mecLocation = getMECQFarmPos();
                 var position = mecLocation.Item1;
                 var hitCount = mecLocation.Item2;
-                if (hitCount != -1)
-                {
-                    //Game.PrintChat("Hit Count is: " + hitCount);
-                }
                 if (hitCount >= 2)
                 {
                     Q.Cast(position, true);
+                }
+            }
+
+            if (useW && W.IsReady())
+            {
+                int minionsHit = 0;
+                foreach (var minion in allMinions)
+                {
+                    if(Vector3.Distance(BallManager.CurrentBallDrawPosition, minion.ServerPosition) <= W.Width && W.GetDamage(minion) > minion.Health)
+                    {
+                        minionsHit += 1;
+                    }
+                }
+                if(minionsHit >= 3)
+                {
                     ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W);
                 }
             }
@@ -908,10 +938,8 @@ namespace Orianna
 
             if (E.IsReady() && useE)
             {
-                List<SharpDX.Vector2> To = new List<SharpDX.Vector2>();
-                To.Add(ObjectManager.Player.ServerPosition.To2D());
-                var collisionList = Prediction.GetCollision(BallPos.To2D(), To, E.Type, E.Width, E.Delay, E.Speed, E.Range);
-                int hitCount = collisionList.Count;
+                var collisionList = GetMinionsHitByE();
+                var hitCount = collisionList.Count;
                 foreach (Obj_AI_Base minion in collisionList)
                 {
                     var damage = DamageLib.getDmg(minion, DamageLib.SpellType.E) * 0.88;
@@ -941,21 +969,15 @@ namespace Orianna
                     Q.Cast(mob);
                 }
 
-                if (useW && W.IsReady())
+                if (useW && W.IsReady() && Vector3.Distance(BallManager.CurrentBallDrawPosition, mob.ServerPosition) <= W.Width)
                 {
-                    var prediction = W.GetPrediction(mob, true);
-                    int hitCount = prediction.TargetsHit;
-                    if (hitCount >= 1)
-                    {
-                        ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W);
-                    }
+                    ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W);
                 }
 
                 if (useE && E.IsReady())
                 {
-                    List<SharpDX.Vector2> To = new List<SharpDX.Vector2>();
-                    To.Add(ObjectManager.Player.ServerPosition.To2D());
-                    int hitCount = Prediction.GetCollision(BallPos.To2D(), To, E.Type, E.Width, E.Delay, E.Speed, E.Range).Count;
+                    var collisionList = GetMinionsHitByE();
+                    var hitCount = collisionList.Count;
                     float healthPer = ObjectManager.Player.Health / ObjectManager.Player.MaxHealth;
                     float manaPer = ObjectManager.Player.Mana / ObjectManager.Player.MaxMana;
                     if (hitCount >= 1 || (healthPer < 0.40 && manaPer >= 0.20))

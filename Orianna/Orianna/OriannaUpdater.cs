@@ -10,7 +10,7 @@ namespace Orianna
 {
     class OriannaUpdater
     {
-        private const int localversion = 8;
+        private const int localversion = 9;
         internal static bool isInitialized;
 
         internal static void InitializeOrianna()
