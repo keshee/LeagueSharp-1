@@ -58,6 +58,7 @@ namespace Skin_Changer
             numSkins.Add("Galio", 4);
             numSkins.Add("Gangplank", 6);
             numSkins.Add("Garen", 6);
+            numSkins.Add("Gnar", 1);
             numSkins.Add("Gragas", 7);
             numSkins.Add("Graves", 5);
             numSkins.Add("Hecarim", 5);
