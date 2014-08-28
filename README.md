@@ -28,7 +28,7 @@ L# Scripts/Assemblies
 [Orianna.exe]: https://github.com/trelli/LeagueSharp/raw/stable/Orianna/Release/Orianna.exe
 
 ### *Universal Skin Changer*
-![Skin Image](http://www.ggwallpaper.com/file/6743/600x338/16:9/league-of-legends-soccer-stars-world-cup-skins_702111436.jpg)
+![Skin Image](http://static.planetminecraft.com/files/resource_media/screenshot/1307/22924_league_of_legends1_4842094_lrg.jpg)
 
  * Download [SkinChanger.exe].
  * Features:
