@@ -33,5 +33,6 @@ L# Scripts/Assemblies
  * Download [SkinChanger.exe].
  * Features:
    * Press 9 to cycle skins in game for any champion
+ * Credits: finndev, pqmailer, Kortatu (all very helpful in making this possible) 
 
 [SkinChanger.exe]: https://github.com/trelli/LeagueSharp/blob/stable/Skin%20Changer/Release/Skin%20Changer.exe?raw=true
