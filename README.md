@@ -26,3 +26,12 @@ L# Scripts/Assemblies
       * Block manual ult cast if it won't hit anyone 
   
 [Orianna.exe]: https://github.com/trelli/LeagueSharp/raw/stable/Orianna/Release/Orianna.exe
+
+### *Universal Skin Changer*
+![Skin Image](http://www.ggwallpaper.com/file/6743/600x338/16:9/league-of-legends-soccer-stars-world-cup-skins_702111436.jpg)
+
+ * Download [SkinChanger.exe].
+ * Features:
+   * Press 9 to cycle skins in game for any champion
+
+[SkinChanger.exe]: https://github.com/trelli/LeagueSharp/blob/stable/Skin%20Changer/Release/Skin%20Changer.exe?raw=true
