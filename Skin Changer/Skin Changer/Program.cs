@@ -30,11 +30,11 @@ namespace Skin_Changer
             ));
 
             //Skin Dictionary
-            numSkins.Add("Aatrox", 1);
+            numSkins.Add("Aatrox", 2);
             numSkins.Add("Ahri", 4);
             numSkins.Add("Akali", 6);
             numSkins.Add("Alistar", 7);
-            numSkins.Add("Amumu", 1);
+            numSkins.Add("Amumu", 7);
             numSkins.Add("Anivia", 5);
             numSkins.Add("Annie", 8);
             numSkins.Add("Ashe", 6);
@@ -47,11 +47,11 @@ namespace Skin_Changer
             numSkins.Add("Corki", 6);
             numSkins.Add("Darius", 3);
             numSkins.Add("Diana", 2);
-            numSkins.Add("Draven", 3);
+            numSkins.Add("Draven", 5);
             numSkins.Add("DrMundo", 7);
             numSkins.Add("Elise", 2);
             numSkins.Add("Evelynn", 3);
-            numSkins.Add("Ezreal", 6);
+            numSkins.Add("Ezreal", 7);
             numSkins.Add("Fiddlesticks", 8);
             numSkins.Add("Fiora", 3);
             numSkins.Add("Fizz", 4);
@@ -62,7 +62,7 @@ namespace Skin_Changer
             numSkins.Add("Gragas", 7);
             numSkins.Add("Graves", 5);
             numSkins.Add("Hecarim", 5);
-            numSkins.Add("Heimerdinger", 5);
+            numSkins.Add("Heimerdinger", 7);
             numSkins.Add("Irelia", 4);
             numSkins.Add("Janna", 5);
             numSkins.Add("JarvanIV", 5);
@@ -84,12 +84,12 @@ namespace Skin_Changer
             numSkins.Add("Lucian", 2);
             numSkins.Add("Lulu", 4);
             numSkins.Add("Lux", 5);
-            numSkins.Add("Malphite", 5);
+            numSkins.Add("Malphite", 6);
             numSkins.Add("Malzahar", 4);
             numSkins.Add("Maokai", 5);
             numSkins.Add("Masteryi", 5);
             numSkins.Add("MasterYi", 5);
-            numSkins.Add("MissFortune", 6);
+            numSkins.Add("MissFortune", 7);
             numSkins.Add("MonkeyKing", 3);
             numSkins.Add("Mordekaiser", 4);
             numSkins.Add("Morgana", 5);
@@ -105,7 +105,6 @@ namespace Skin_Changer
             numSkins.Add("Poppy", 6);
             numSkins.Add("Quinn", 2);
             numSkins.Add("Rammus", 6);
-            numSkins.Add("Random", 0);
             numSkins.Add("Renekton", 6);
             numSkins.Add("Rengar", 2);
             numSkins.Add("Riven", 5);
@@ -136,16 +135,16 @@ namespace Skin_Changer
             numSkins.Add("Urgot", 3);
             numSkins.Add("Varus", 3);
             numSkins.Add("Vayne", 5);
-            numSkins.Add("Veigar", 7);
+            numSkins.Add("Veigar", 8);
             numSkins.Add("Velkoz", 1);
             numSkins.Add("Viktor", 3);
-            numSkins.Add("Vi", 2);
+            numSkins.Add("Vi", 3);
             numSkins.Add("Vladimir", 6);
             numSkins.Add("Volibear", 3);
             numSkins.Add("Warwick", 7);
             numSkins.Add("Xerath", 3);
             numSkins.Add("XinZhao", 5);
-            numSkins.Add("Yasuo", 1);
+            numSkins.Add("Yasuo", 2);
             numSkins.Add("Yorick", 2);
             numSkins.Add("Zac", 1);
             numSkins.Add("Zed", 3);
