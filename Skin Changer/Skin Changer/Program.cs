@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +12,6 @@ namespace Skin_Changer
     class Program
     {
         public static int currSkinId = 0;
-        public static bool canChange = true;
         public static Dictionary<string, int> numSkins = new Dictionary<string, int>();
         public static Menu Config;
         static void Main(string[] args)
@@ -38,10 +37,11 @@ namespace Skin_Changer
             numSkins.Add("Anivia", 5);
             numSkins.Add("Annie", 8);
             numSkins.Add("Ashe", 6);
+            numSkins.Add("Azir", 1);
             numSkins.Add("Blitzcrank", 7);
             numSkins.Add("Brand", 4);
             numSkins.Add("Braum", 1);
-            numSkins.Add("Caitlyn", 5);
+            numSkins.Add("Caitlyn", 6);
             numSkins.Add("Cassiopeia", 4);
             numSkins.Add("Chogath", 5);
             numSkins.Add("Corki", 6);
@@ -75,7 +75,7 @@ namespace Skin_Changer
             numSkins.Add("Katarina", 7);
             numSkins.Add("Kayle", 6);
             numSkins.Add("Kennen", 5);
-            numSkins.Add("Khazix", 1);
+            numSkins.Add("Khazix", 2);
             numSkins.Add("KogMaw", 7);
             numSkins.Add("Leblanc", 3);
             numSkins.Add("LeeSin", 6);
@@ -153,38 +153,20 @@ namespace Skin_Changer
             numSkins.Add("Zyra", 3);
 
             Config = new Menu("SkinChanger", "SkinChanger", true);
-            Config.AddSubMenu(new Menu("SkinChanger", "SkinChanger"));
-            Config.SubMenu("SkinChanger").AddItem(new MenuItem("CycleSkins", "CycleSkins!").SetValue(new KeyBind("9".ToCharArray()[0], KeyBindType.Toggle)));
+            var ChangeSkin = Config.AddItem(new MenuItem("CycleSkins", "CycleSkins!").SetValue(new KeyBind("9".ToCharArray()[0], KeyBindType.Toggle)));
+           
+            
+            ChangeSkin.ValueChanged += delegate(object sender, OnValueChangeEventArgs EventArgs)
+            {
+                if (numSkins[ObjectManager.Player.ChampionName] > currSkinId)
+                    currSkinId++;
+                else
+                    currSkinId = 0;
+
+                GenerateSkinPacket(ObjectManager.Player.ChampionName, currSkinId);
+            };
 
             Config.AddToMainMenu();
-
-            Game.OnGameUpdate += Game_OnGameUpdate;
-        }
-
-        public static void Game_OnGameUpdate(EventArgs args)
-        {
-            var cycleSkins = Config.Item("CycleSkins").GetValue<KeyBind>().Active;
-
-            if (cycleSkins)
-            {
-                if (canChange)
-                {
-                    canChange = false;
-                    GenerateSkinPacket(ObjectManager.Player.SkinName, currSkinId);
-                    if (numSkins[ObjectManager.Player.SkinName] > currSkinId)
-                    {
-                        currSkinId = currSkinId + 1;
-                    }
-                    else
-                    {
-                        currSkinId = 0;
-                    }
-                }
-            }
-            else
-            {
-                canChange = true;
-            }
         }
 
         public static void GenerateSkinPacket(string currentChampion, int skinNumber)
